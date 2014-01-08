@@ -16,7 +16,19 @@ Boincmanager::Boincmanager(QWidget *parent) :
     ui(new Ui::Boincmanager)
 {
     ui->setupUi(this);
-}
+    system("./BOINC/boinccmd -V > version.txt");
+    QFile file("version.txt");
+    file.open(QIODevice::ReadOnly);
+    QTextStream stream(&file);
+    line=stream.readLine();
+    QStringList ls;
+    ls=line.split(" ", QString::SkipEmptyParts);
+    line="Version ";
+    line+=ls.at(4);
+    ui->label_10->setText(line);
+    file.close();
+    system("rm version.txt");
+    }
 
 Boincmanager::~Boincmanager()
 {
@@ -56,11 +68,17 @@ void Boincmanager::on_start_clicked()
     pthread_create(&tid1,&attr1,runner,NULL);
     ui->start->setDisabled(true);
     ui->stop->setEnabled(true);
+    ui->projectext->setEnabled(true);
     ui->textEdit->setText("BOINC started\nLoading...");
     delay(2);
+    ui->tab_2->setEnabled(true);
+    ui->tabWidget_2->setEnabled(true);
+    ui->createac->setEnabled(true);
+    ui->tab_3->setEnabled(true);
+    ui->tab_4->setEnabled(true);
     pthread_attr_init(&attr2);
     pthread_create(&tid2,&attr2,updater,NULL);
-    delay(4);
+    delay(2);
        ui->textEdit->setText(line);
 }
 
@@ -71,6 +89,10 @@ void Boincmanager::on_stop_clicked()
     system("./BOINC/boinccmd --quit");
     ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
+    ui->tab_2->setDisabled(true);
+    ui->tab_3->setDisabled(true);
+    ui->tab_4->setDisabled(true);
+    ui->tabWidget_2->setDisabled(true);
     delay(2);
     QFile file("started.txt");
     file.open (QIODevice::ReadOnly);
@@ -88,8 +110,134 @@ void Boincmanager::on_stop_clicked()
 void Boincmanager::on_tabWidget_currentChanged(int index)
 {
     ui->projectext->setText("");
-    if(index==2){
-     ui->progressBar->setValue(90);}
+    if(index==0){
+        pthread_attr_init(&attr2);
+        pthread_create(&tid2,&attr2,updater,NULL);
+        delay(1);
+           ui->textEdit->setText(line);
+    }
+    if(index==3){
+        system("./BOINC/boinccmd --get_notices 0 > notices.txt");
+        QFile file("notices.txt");
+        line="";
+        file.open(QIODevice::ReadOnly);
+        QTextStream stream(&file);
+        if(stream.atEnd())
+            ui->notices->setText(" NO NEW NOTICES ");
+        else
+        {
+            while(!stream.atEnd())
+            {
+                line+=stream.readLine();
+                line+="\n";
+            }
+            ui->notices->setText(line);
+        }
+        file.close();
+        system("rm notices.txt");
+    }
+    if((index==2) && started){
+        system("./BOINC/boinccmd --get_disk_usage > diskusage.txt");
+        QFile file("diskusage.txt");
+        file.open(QIODevice::ReadOnly);
+        QTextStream stream (&file);
+        line="";
+        QString temp;
+        QStringList list;
+        double total=1.0,free=1.0;
+        double value;
+        while(!stream.atEnd()){
+            temp=stream.readLine();
+            if(temp.startsWith("total"))
+            {
+                list=temp.split(": ",QString::SkipEmptyParts);
+                total=list.at(1).toDouble();
+            }
+            if(temp.startsWith("free"))
+            {
+                list=temp.split(": ",QString::SkipEmptyParts);
+                free=list.at(1).toDouble();
+            }
+        }
+        file.close();
+        value=((total-free)/total)*100;
+        system("rm diskusage.txt");
+        ui->progressBar->setValue((int)value);
+
+        system("./BOINC/boinccmd --get_project_status > projectstatus.txt");
+        QFile status("projectstatus.txt");
+        status.open(QIODevice::ReadOnly);
+        QTextStream statstream(&status);
+        line="";
+        int i=1;
+        QString no;
+        list.clear();
+        while(!statstream.atEnd())
+        {
+            no=QString::number(i,10);
+            if(statstream.readLine().startsWith(no))
+            {
+                if(i>1)
+                    line+="\n______________________________________________\n\n";
+                list=statstream.readLine().split(": ");
+                line+="PROJECT NAME\t\t: ";
+                line+=list.at(1);
+                list=statstream.readLine().split(": ");
+                line+="\nPROJECT URL\t\t: ";
+                line+=list.at(1);
+                list=statstream.readLine().split(": ");
+                line+="\nUSER NAME\t\t: ";
+                line+=list.at(1);
+                statstream.readLine();statstream.readLine();
+                list=statstream.readLine().split(": ");
+                line+="\nUSER TOTAL CREDIT\t\t: ";
+                line+=list.at(1);
+                list=statstream.readLine().split(": ");
+                line+="\nUSER AVG. CREDIT\t\t: ";
+                line+=list.at(1);
+                list=statstream.readLine().split(": ");
+                line+="\nHOST TOTAL CREDIT\t\t: ";
+                line+=list.at(1);
+                list=statstream.readLine().split(": ");
+                line+="\nHOST AVG. CREDIT\t\t: ";
+                line+=list.at(1);
+                i++;
+            }
+        }
+        system("rm projectstatus.txt");
+        ui->textEdit_2->setText(line);
+        system("./BOINC/boinccmd --get_host_info > hostinfo.txt");
+        QFile fil("hostinfo.txt");
+        fil.open(QIODevice::ReadOnly);
+        QTextStream tstream(&fil);
+        list.clear();
+        tstream.readLine();//skipping 1st line
+        temp=tstream.readLine();
+        list=temp.split(": ");
+        ui->domname->setText(list.at(1));
+        tstream.readLine();tstream.readLine();tstream.readLine(); //skipping 3 lines
+        temp=tstream.readLine();
+        list=temp.split(": ");
+        ui->cpu->setText(list.at(1));
+        list=tstream.readLine().split(": ");
+        ui->fp->setText(list.at(1));
+        list=tstream.readLine().split(": ");
+        ui->int_2->setText(list.at(1));
+        tstream.readLine();
+        list=tstream.readLine().split(": ");
+        temp=list.at(1);
+        list=tstream.readLine().split(": ");
+        temp+=" ";
+        temp+=list.at(1);
+        ui->os->setText(temp);
+        list=tstream.readLine().split(": ");
+        ui->memory->setText(list.at(1));
+        temp=tstream.readLine();
+        list=temp.split(": ");
+        ui->cache->setText(list.at(1));
+        fil.close();
+        system("rm hostinfo.txt");
+    }
 }
 
 void Boincmanager::on_createac_2_clicked()
@@ -126,7 +274,8 @@ void Boincmanager::on_attach_clicked()
     QString cmd1 = "./BOINC/boinccmd --project_attach ";
     QString cmd2 = ui->prurl2->text()+" ";
     QString cmd3 = ui->auth->text();
-    QString cmd = cmd1+cmd2+cmd3;
+    QString cmd4 = " > attached.txt";
+    QString cmd = cmd1+cmd2+cmd3+cmd4;
      system(cmd.toUtf8().constData());
      ui->projectext->setText("Attaching...");
      delay(2);
