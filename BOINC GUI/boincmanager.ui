@@ -33,7 +33,7 @@
      <enum>Qt::NoFocus</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <property name="enabled">
@@ -146,7 +146,7 @@
          <rect>
           <x>20</x>
           <y>20</y>
-          <width>121</width>
+          <width>141</width>
           <height>17</height>
          </rect>
         </property>
@@ -186,6 +186,9 @@
           <height>27</height>
          </rect>
         </property>
+        <property name="maxLength">
+         <number>30</number>
+        </property>
        </widget>
        <widget class="QLabel" name="label_4">
         <property name="geometry">
@@ -208,6 +211,9 @@
           <width>331</width>
           <height>27</height>
          </rect>
+        </property>
+        <property name="maxLength">
+         <number>15</number>
         </property>
        </widget>
        <widget class="QLabel" name="label_5">
@@ -234,6 +240,9 @@
         </property>
         <property name="inputMethodHints">
          <set>Qt::ImhHiddenText|Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhSensitiveData</set>
+        </property>
+        <property name="maxLength">
+         <number>12</number>
         </property>
         <property name="echoMode">
          <enum>QLineEdit::Password</enum>
@@ -735,7 +744,7 @@
        <bool>true</bool>
       </property>
       <property name="textInteractionFlags">
-       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+       <set>Qt::TextBrowserInteraction</set>
       </property>
      </widget>
     </widget>

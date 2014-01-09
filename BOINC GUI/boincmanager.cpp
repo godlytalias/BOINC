@@ -8,8 +8,10 @@
 
 pthread_t tid1,tid2;
 pthread_attr_t attr1,attr2;
-bool started=false;
-QString line="";
+bool started=false,done=false;
+QString line="",cmd;
+QString temp;
+QStringList list;
 QTime dieTime;
 Boincmanager::Boincmanager(QWidget *parent) :
     QMainWindow(parent),
@@ -40,6 +42,12 @@ Boincmanager::~Boincmanager()
 void *runner(void* param)
 {
     system("./BOINC/boinc > started.txt");
+}
+
+void *executor(void* param)
+{
+    system(cmd.toUtf8().constData());
+    done=true;
 }
 
 void *updater(void* param)
@@ -111,10 +119,13 @@ void Boincmanager::on_tabWidget_currentChanged(int index)
 {
     ui->projectext->setText("");
     if(index==0){
+        while(ui->tabWidget->currentIndex()==0 && started){
         pthread_attr_init(&attr2);
         pthread_create(&tid2,&attr2,updater,NULL);
         delay(1);
            ui->textEdit->setText(line);
+           delay(4);
+        }
     }
     if(index==3){
         system("./BOINC/boinccmd --get_notices 0 > notices.txt");
@@ -142,8 +153,6 @@ void Boincmanager::on_tabWidget_currentChanged(int index)
         file.open(QIODevice::ReadOnly);
         QTextStream stream (&file);
         line="";
-        QString temp;
-        QStringList list;
         double total=1.0,free=1.0;
         double value;
         while(!stream.atEnd()){
@@ -183,23 +192,23 @@ void Boincmanager::on_tabWidget_currentChanged(int index)
                 line+="PROJECT NAME\t\t: ";
                 line+=list.at(1);
                 list=statstream.readLine().split(": ");
-                line+="\nPROJECT URL\t\t: ";
+                line+="\n\nPROJECT URL\t\t: ";
                 line+=list.at(1);
                 list=statstream.readLine().split(": ");
-                line+="\nUSER NAME\t\t: ";
+                line+="\n\nUSER NAME\t\t: ";
                 line+=list.at(1);
                 statstream.readLine();statstream.readLine();
                 list=statstream.readLine().split(": ");
-                line+="\nUSER TOTAL CREDIT\t\t: ";
+                line+="\n\nUSER TOTAL CREDIT\t\t: ";
                 line+=list.at(1);
                 list=statstream.readLine().split(": ");
-                line+="\nUSER AVG. CREDIT\t\t: ";
+                line+="\n\nUSER AVG. CREDIT\t\t: ";
                 line+=list.at(1);
                 list=statstream.readLine().split(": ");
-                line+="\nHOST TOTAL CREDIT\t\t: ";
+                line+="\n\nHOST TOTAL CREDIT\t\t: ";
                 line+=list.at(1);
                 list=statstream.readLine().split(": ");
-                line+="\nHOST AVG. CREDIT\t\t: ";
+                line+="\n\nHOST AVG. CREDIT\t\t: ";
                 line+=list.at(1);
                 i++;
             }
@@ -249,16 +258,29 @@ void Boincmanager::on_createac_2_clicked()
     QString cmd4 = ui->pwd->text()+" ";
     QString cmd5 = ui->uname->text();
     QString cmd6 = " > created.txt";
-    QString cmd = cmd1+cmd2+cmd3+cmd4+cmd5+cmd6;
-    system(cmd.toUtf8().constData());
+    cmd = cmd1+cmd2+cmd3+cmd4+cmd5+cmd6;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Creating account...");
+    while(!done)
     delay(3);
     QFile file("created.txt");
     file.open (QIODevice::ReadOnly);
     QTextStream stream ( &file );
     line="";
-    while( !stream.atEnd()) {
-        line += stream.readLine()+"\n";
+        while(!stream.atEnd()){
+        temp=stream.readLine();
+    if(temp.startsWith("account key"))
+    {
+        list=temp.split(": ");
+        line="Account Key : ";
+        line+=list.at(1);
+        line+="\n\n Note down the account key for getting access to your account later";
+        ui->auth->setText(list.at(1));
+        break;
+    }
+    else
+        line="Account creation failed!";
     }
     file.close();
     ui->projectext->setText(line);
@@ -274,21 +296,13 @@ void Boincmanager::on_attach_clicked()
     QString cmd1 = "./BOINC/boinccmd --project_attach ";
     QString cmd2 = ui->prurl2->text()+" ";
     QString cmd3 = ui->auth->text();
-    QString cmd4 = " > attached.txt";
-    QString cmd = cmd1+cmd2+cmd3+cmd4;
-     system(cmd.toUtf8().constData());
+    cmd = cmd1+cmd2+cmd3;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
      ui->projectext->setText("Attaching...");
      delay(2);
-     QFile file("attached.txt");
-    file.open (QIODevice::ReadOnly);
-    QTextStream stream ( &file );
-    line="";
-    while( !stream.atEnd()) {
-        line += stream.readLine()+"\n";
-    }
-    file.close();
+    line="PROJECT ATTACHED SUCCESSFULLY";
     ui->projectext->setText(line);
-    system("rm attached.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -299,21 +313,14 @@ void Boincmanager::on_detach_clicked()
     if(started){
    QString cmd1 = "./BOINC/boinccmd --project ";
    QString cmd2 = ui->prurl2->text();
-   QString cmd3 = " detach > detached.txt";
-   QString cmd = cmd1+cmd2+cmd3;
-    system(cmd.toUtf8().constData());
+   QString cmd3 = " detach";
+   cmd = cmd1+cmd2+cmd3;
+   pthread_attr_init(&attr2);
+   pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Detaching project...");
     delay(2);
-        QFile file("detached.txt");
-        file.open (QIODevice::ReadOnly);
-        QTextStream stream ( &file );
-        line="";
-        while( !stream.atEnd()) {
-            line += stream.readLine()+"\n";
-        }
-        file.close();
+        line="PROJECT DETACHED SUCCESFULLY";
         ui->projectext->setText(line);
-        system("rm detached.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -324,21 +331,14 @@ void Boincmanager::on_reset_clicked()
     if(started){
     QString cmd1="./BOINC/boinccmd --project ";
     QString cmd2=ui->prurl3->text();
-    QString cmd3=" reset > reset.txt";
-    QString cmd=cmd1+cmd2+cmd3;
-    system(cmd.toUtf8().constData());
+    QString cmd3=" reset";
+    cmd=cmd1+cmd2+cmd3;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Resetting project...");
     delay(2);
-        QFile file("reset.txt");
-        file.open (QIODevice::ReadOnly);
-        QTextStream stream ( &file );
-        line="";
-        while( !stream.atEnd()) {
-            line += stream.readLine()+"\n";
-        }
-        file.close();
+        line="RESETTED PROJECT SUCCESFULLY";
         ui->projectext->setText(line);
-        system("rm reset.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -349,21 +349,14 @@ void Boincmanager::on_update_clicked()
     if(started){
     QString cmd1="./BOINC/boinccmd --project ";
     QString cmd2=ui->prurl3->text();
-    QString cmd3=" update > update.txt";
-    QString cmd=cmd1+cmd2+cmd3;
-    system(cmd.toUtf8().constData());
+    QString cmd3=" update";
+    cmd=cmd1+cmd2+cmd3;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Updating project...");
     delay(2);
-        QFile file("update.txt");
-        file.open (QIODevice::ReadOnly);
-        QTextStream stream ( &file );
-        line="";
-        while( !stream.atEnd()) {
-            line += stream.readLine()+"\n";
-        }
-        file.close();
+        line="PROJECT UPDATED SUCCESSFULLY";
         ui->projectext->setText(line);
-        system("rm update.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -374,21 +367,14 @@ void Boincmanager::on_resume_clicked()
     if(started){
     QString cmd1="./BOINC/boinccmd --project ";
     QString cmd2=ui->prurl3->text();
-    QString cmd3=" resume > resume.txt";
-    QString cmd=cmd1+cmd2+cmd3;
-    system(cmd.toUtf8().constData());
+    QString cmd3=" resume";
+    cmd=cmd1+cmd2+cmd3;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Resuming project...");
     delay(2);
-        QFile file("resume.txt");
-        file.open (QIODevice::ReadOnly);
-        QTextStream stream ( &file );
-        line="";
-        while( !stream.atEnd()) {
-            line += stream.readLine()+"\n";
-        }
-        file.close();
+        line="PROJECT RESUMED SUCCESSFULLY";
         ui->projectext->setText(line);
-        system("rm resume.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -399,21 +385,14 @@ void Boincmanager::on_suspend_clicked()
     if(started){
     QString cmd1="./BOINC/boinccmd --project ";
     QString cmd2=ui->prurl3->text();
-    QString cmd3=" suspend > suspend.txt";
-    QString cmd=cmd1+cmd2+cmd3;
-    system(cmd.toUtf8().constData());
+    QString cmd3=" suspend";
+    cmd=cmd1+cmd2+cmd3;
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,executor,NULL);
     ui->projectext->setText("Suspending project...");
     delay(2);
-        QFile file("suspend.txt");
-        file.open (QIODevice::ReadOnly);
-        QTextStream stream ( &file );
-        line="";
-        while( !stream.atEnd()) {
-            line += stream.readLine()+"\n";
-        }
-        file.close();
+        line="PROJECT SUSPENDED SUCCESSFULLY";
         ui->projectext->setText(line);
-        system("rm suspend.txt");
     }
     else
         ui->projectext->setText("BOINC is not started.\nStart the BOINC first.");
@@ -424,7 +403,6 @@ void Boincmanager::on_tabWidget_2_currentChanged(int index)
     ui->prurl1->setText("");
     ui->prurl2->setText("");
     ui->prurl3->setText("");
-    ui->auth->setText("");
     ui->email->setText("");
     ui->uname->setText("");
     ui->pwd->setText("");
