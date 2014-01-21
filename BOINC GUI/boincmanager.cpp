@@ -1,16 +1,21 @@
 #include "boincmanager.h"
+#include "boincdialog.h"
 #include "ui_boincmanager.h"
 #include <pthread.h>
+#include <qdialog.h>
 #include <qfile.h>
 #include <qtextstream.h>
 #include <qstringmatcher.h>
 #include <QTime>
+#include <qdir.h>
+#include <qfile.h>
 
 pthread_t tid1,tid2;
 pthread_attr_t attr1,attr2;
 bool started=false,done=false;
 QString line="",cmd;
 QString temp;
+int linecount=0;
 QStringList list;
 QTime dieTime;
 Boincmanager::Boincmanager(QWidget *parent) :
@@ -18,6 +23,12 @@ Boincmanager::Boincmanager(QWidget *parent) :
     ui(new Ui::Boincmanager)
 {
     ui->setupUi(this);
+    if(!((QDir("BOINC").exists())&&(QFile("BOINC/boinccmd").exists())))
+    {
+        Boincdialog *d = new Boincdialog(this);
+        d->show();
+    }
+   else{
     system("./BOINC/boinccmd -V > version.txt");
     QFile file("version.txt");
     file.open(QIODevice::ReadOnly);
@@ -29,7 +40,7 @@ Boincmanager::Boincmanager(QWidget *parent) :
     line+=ls.at(4);
     ui->label_10->setText(line);
     file.close();
-    system("rm version.txt");
+    system("rm version.txt");}
     }
 
 Boincmanager::~Boincmanager()
@@ -53,11 +64,16 @@ void *executor(void* param)
 void *updater(void* param)
 {
     QFile file("started.txt");
+    int i=0;
     file.open (QIODevice::ReadOnly);
     line="";
     QTextStream stream ( &file );
+    while(i<linecount){
+    stream.readLine();
+    i++;}
     while( !stream.atEnd()) {
         line += stream.readLine()+"\n";
+        linecount++;
     }
     file.close();
 }
@@ -71,7 +87,14 @@ void delay(int sec)
 
 void Boincmanager::on_start_clicked()
 {
+    if(!((QDir("BOINC").exists())&&(QFile("BOINC/boinc").exists())))
+    {
+        Boincdialog *d = new Boincdialog(this);
+        d->show();
+    }
+    else{
     started=true;
+    linecount=0;
     pthread_attr_init (&attr1);
     pthread_create(&tid1,&attr1,runner,NULL);
     ui->start->setDisabled(true);
@@ -79,16 +102,20 @@ void Boincmanager::on_start_clicked()
     ui->projectext->setEnabled(true);
     ui->textEdit->setText("BOINC started\nLoading...");
     delay(2);
+    ui->textEdit->setText("");
     ui->tab_2->setEnabled(true);
     ui->tabWidget_2->setEnabled(true);
     ui->createac->setEnabled(true);
     ui->tab_3->setEnabled(true);
     ui->tab_4->setEnabled(true);
-    pthread_attr_init(&attr2);
-    pthread_create(&tid2,&attr2,updater,NULL);
-    delay(2);
-       ui->textEdit->setText(line);
-}
+       while(ui->tabWidget->currentIndex()==0 && started){
+       pthread_attr_init(&attr2);
+       pthread_create(&tid2,&attr2,updater,NULL);
+       delay(1);
+       if(!(line.compare("")==0))
+          ui->textEdit->append(line);
+          delay(4);}
+}}
 
 
 void Boincmanager::on_stop_clicked()
@@ -102,15 +129,10 @@ void Boincmanager::on_stop_clicked()
     ui->tab_4->setDisabled(true);
     ui->tabWidget_2->setDisabled(true);
     delay(2);
-    QFile file("started.txt");
-    file.open (QIODevice::ReadOnly);
-    QTextStream stream ( &file );
-    line="";
-    while( !stream.atEnd()) {
-        line += stream.readLine()+"\n";
-    }
-    file.close();
-    ui->textEdit->setText(line);
+    pthread_attr_init(&attr2);
+    pthread_create(&tid2,&attr2,updater,NULL);
+    delay(1);
+       ui->textEdit->append(line);
 }
 
 
@@ -123,7 +145,8 @@ void Boincmanager::on_tabWidget_currentChanged(int index)
         pthread_attr_init(&attr2);
         pthread_create(&tid2,&attr2,updater,NULL);
         delay(1);
-           ui->textEdit->setText(line);
+        if(!(line.compare("")==0))
+           ui->textEdit->append(line);
            delay(4);
         }
     }

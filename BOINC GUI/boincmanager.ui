@@ -33,7 +33,7 @@
      <enum>Qt::NoFocus</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <property name="enabled">
@@ -91,6 +91,9 @@
         <width>501</width>
         <height>371</height>
        </rect>
+      </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::NoWrap</enum>
       </property>
       <property name="readOnly">
        <bool>true</bool>

@@ -13,10 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        boincmanager.cpp
+        boincmanager.cpp \
+    boincdialog.cpp
 
 CONFIG += console
 
-HEADERS  += boincmanager.h
+HEADERS  += boincmanager.h \
+    boincdialog.h
 
-FORMS    += boincmanager.ui
+FORMS    += boincmanager.ui \
+    boincdialog.ui
