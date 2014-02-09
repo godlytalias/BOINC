@@ -22,7 +22,7 @@
 // - Runs as a daemon, and creates an unbounded supply of work.
 //   It attempts to maintain a "cushion" of 100 unsent job instances.
 //   (your app may not work this way; e.g. you might create work in batches)
-// - Creates work for the application "example_app".
+// - Creates work for the application "encrypt".
 // - Creates a new input file for each job;
 //   the file (and the workunit names) contain a timestamp
 //   and sequence number, so they're unique.
@@ -62,9 +62,9 @@
     // maintain at least this many unsent results
 #define REPLICATION_FACTOR  1
 
-const char* app_name = "example_app";
-const char* in_template_file = "example_app_in";
-const char* out_template_file = "example_app_out";
+const char* app_name = "encrypt";
+const char* in_template_file = "encrypt_in";
+const char* out_template_file = "encrypt_out";
 
 char* in_template;
 DB_APP app;

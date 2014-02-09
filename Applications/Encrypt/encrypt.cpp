@@ -1,3 +1,5 @@
+//Edited by Godly T.Alias
+
 // This file is part of BOINC.
 // http://boinc.berkeley.edu
 // Copyright (C) 2008 University of California
@@ -14,26 +16,6 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with BOINC.  If not, see <http://www.gnu.org/licenses/>.
-
-// This program serves as both
-// - An example BOINC application, illustrating the use of the BOINC API
-// - A program for testing various features of BOINC
-//
-// NOTE: this file exists as both
-// boinc/apps/upper_case.cpp
-// and
-// boinc_samples/example_app/uc2.cpp
-// If you update one, please update the other!
-
-// The program converts a mixed-case file to upper case:
-// read "in", convert to upper case, write to "out"
-//
-// command line options
-// -run_slow: sleep 1 second after each character
-// -cpu_time N: use about N CPU seconds after copying files
-// -early_exit: exit(10) after 30 chars
-// -early_crash: crash after 30 chars
-//
 
 #ifdef _WIN32
 #include "boinc_win.h"
@@ -62,7 +44,7 @@ UC_SHMEM* shmem;
 
 using std::string;
 
-#define CHECKPOINT_FILE "upper_case_state"
+#define CHECKPOINT_FILE "encrypt_state"
 #define INPUT_FILENAME "in"
 #define OUTPUT_FILENAME "out"
 
@@ -219,7 +201,7 @@ int main(int argc, char **argv) {
         retval = out.open(output_path, "wb");
     }
     if (retval) {
-        fprintf(stderr, "%s APP: upper_case output open failed:\n",
+        fprintf(stderr, "%s APP: encrypt output open failed:\n",
             boinc_msg_prefix(buf, sizeof(buf))
         );
         fprintf(stderr, "%s resolved name %s, retval %d\n",
@@ -232,7 +214,7 @@ int main(int argc, char **argv) {
 #ifdef APP_GRAPHICS
     // create shared mem segment for graphics, and arrange to update it
     //
-    shmem = (UC_SHMEM*)boinc_graphics_make_shmem("uppercase", sizeof(UC_SHMEM));
+    shmem = (UC_SHMEM*)boinc_graphics_make_shmem("encrypt", sizeof(UC_SHMEM));
     if (!shmem) {
         fprintf(stderr, "%s failed to create shared mem segment\n",
             boinc_msg_prefix(buf, sizeof(buf))
@@ -276,7 +258,7 @@ strcpy(word,rsaencrypt(word,7,pq));
         if (boinc_time_to_checkpoint()) {
             retval = do_checkpoint(out, nchars);
             if (retval) {
-                fprintf(stderr, "%s APP: upper_case checkpoint failed %d\n",
+                fprintf(stderr, "%s APP: encrypt checkpoint failed %d\n",
                     boinc_msg_prefix(buf, sizeof(buf)), retval
                 );
                 exit(retval);
@@ -291,7 +273,7 @@ strcpy(word,rsaencrypt(word,7,pq));
 
     retval = out.flush();
     if (retval) {
-        fprintf(stderr, "%s APP: upper_case flush failed %d\n",
+        fprintf(stderr, "%s APP: encrypt flush failed %d\n",
             boinc_msg_prefix(buf, sizeof(buf)), retval
         );
         exit(1);
@@ -310,7 +292,7 @@ strcpy(word,rsaencrypt(word,7,pq));
             if (boinc_time_to_checkpoint()) {
                 retval = do_checkpoint(out, nchars);
                 if (retval) {
-                    fprintf(stderr, "%s APP: upper_case checkpoint failed %d\n",
+                    fprintf(stderr, "%s APP: encrypt checkpoint failed %d\n",
                         boinc_msg_prefix(buf, sizeof(buf)), retval
                     );
                     exit(1);
