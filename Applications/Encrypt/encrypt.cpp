@@ -279,29 +279,6 @@ strcpy(word,rsaencrypt(word,7,pq));
         exit(1);
     }
 
-    // burn up some CPU time if needed
-    //
-    if (cpu_time) {
-        double start = dtime();
-        for (i=0; ; i++) {
-            double e = dtime()-start;
-            if (e > cpu_time) break;
-            fd = .5 + .5*(e/cpu_time);
-            boinc_fraction_done(fd);
-
-            if (boinc_time_to_checkpoint()) {
-                retval = do_checkpoint(out, nchars);
-                if (retval) {
-                    fprintf(stderr, "%s APP: encrypt checkpoint failed %d\n",
-                        boinc_msg_prefix(buf, sizeof(buf)), retval
-                    );
-                    exit(1);
-                }
-                boinc_checkpoint_completed();
-            }
-            comp_result = do_a_giga_flop(i);
-        }
-    }
     boinc_fraction_done(1);
 #ifdef APP_GRAPHICS
     update_shmem();
