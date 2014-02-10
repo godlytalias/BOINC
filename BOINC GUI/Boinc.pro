@@ -23,3 +23,9 @@ HEADERS  += boincmanager.h \
 
 FORMS    += boincmanager.ui \
     boincdialog.ui
+
+OTHER_FILES += \
+    boincnitc.png
+
+RESOURCES += \
+    Icon.qrc

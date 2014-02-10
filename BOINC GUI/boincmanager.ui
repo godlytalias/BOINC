@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>BOINC @ NITC</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="Icon.qrc">
+    <normaloff>:/new/prefix1/boincnitc.png</normaloff>:/new/prefix1/boincnitc.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
@@ -806,6 +810,8 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="Icon.qrc"/>
+ </resources>
  <connections/>
 </ui>
