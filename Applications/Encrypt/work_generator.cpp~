@@ -69,7 +69,7 @@ const char* out_template_file = "encrypt_out";
 char* in_template;
 DB_APP app;
 int start_time;
-int seqno,wordno;
+int seqno;
 
 // create one new job
 //
@@ -81,8 +81,8 @@ int make_job(char word[]) {
 
     // make a unique name (for the job and its input file)
     //
-    sprintf(name, "%s_%d_%d", app_name, start_time, wordno);
-    seqno++;
+    sprintf(name, "%s_%d_%d", app_name, start_time, seqno++);
+
     // Create the input file.
     // Put it at the right place in the download dir hierarchy
     //
@@ -134,10 +134,7 @@ char word[100];
 	if(!f)
 	strcpy(word,cCurrentPath);
 	else
-	{
 	fscanf(f,"%s",word);
-	wordno++;
-	}
         retval = count_unsent_results(n, 0);
         if (retval) {
             log_messages.printf(MSG_CRITICAL,
@@ -148,11 +145,11 @@ char word[100];
         if (n > CUSHION) {
             daemon_sleep(10);
         } else {
-            int njobs = 1;// (CUSHION-n)/REPLICATION_FACTOR;
+            int njobs = (CUSHION-n)/REPLICATION_FACTOR;
             log_messages.printf(MSG_DEBUG,
                 "Making %d jobs\n", njobs
             );
-      //      for (int i=0; i<njobs; i++) {
+            for (int i=0; i<njobs; i++) {
                 retval = make_job(word);
                 if (retval) {
                     log_messages.printf(MSG_CRITICAL,
@@ -160,7 +157,7 @@ char word[100];
                     );
                     exit(retval);
                 }
-   //         }
+            }
             // Now sleep for a few seconds to let the transitioner
             // create instances for the jobs we just created.
             // Otherwise we could end up creating an excess of jobs.
@@ -194,7 +191,6 @@ void usage(char *name) {
 int main(int argc, char** argv) {
     int i, retval;
     char buf[256];
-    wordno=0;
  if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
      {
      return 0;
