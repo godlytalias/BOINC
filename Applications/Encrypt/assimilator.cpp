@@ -64,6 +64,7 @@ int assimilate_handler(
 		fputs(sen,write);
 		fputs("\n",write);
 		}
+	fputs("|||end|||",write);
 	fclose(write);
 	fclose(read);
                 copy_path = config.project_path("sample_results/%s", wu.name);
