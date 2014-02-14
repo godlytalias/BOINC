@@ -1,21 +1,9 @@
-//Edited by Godly T.Alias
+//Modified by Godly T.Alias
 
 // This file is part of BOINC.
 // http://boinc.berkeley.edu
 // Copyright (C) 2008 University of California
-//
-// BOINC is free software; you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License
-// as published by the Free Software Foundation,
-// either version 3 of the License, or (at your option) any later version.
-//
-// BOINC is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-// See the GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with BOINC.  If not, see <http://www.gnu.org/licenses/>.
+
 
 #ifdef _WIN32
 #include "boinc_win.h"
@@ -35,12 +23,7 @@
 #include "filesys.h"
 #include "boinc_api.h"
 #include "mfile.h"
-#include "graphics2.h"
 
-#ifdef APP_GRAPHICS
-#include "uc2.h"
-UC_SHMEM* shmem;
-#endif
 
 using std::string;
 
@@ -52,7 +35,7 @@ bool run_slow = false;
 bool early_exit = false;
 bool early_crash = false;
 bool early_sleep = false;
-double cpu_time = 20, comp_result;
+double cpu_time=20,comp_result;
 
 // do a billion floating-point ops
 // (note: I needed to add an arg to this;
@@ -62,21 +45,20 @@ double cpu_time = 20, comp_result;
 
 char* rsaencrypt(char msg[],int key,int n) 
 { 
-int len,pt,i,j,k,en[100];
+int len,pt,i,j,k,en[1025];
 i=0; 
 
 len=strlen(msg); 
 while(i!=len) 
 { 
-    pt=(int)msg[i]; 
-    pt=pt-96; 
+    pt=(int)msg[i];
     k=1; 
     for(j=0;j<key;j++) 
     { 
         k=k*pt; 
         k=k%n; 
     } 
-    en[i]=k+96;
+    en[i]=k;
     i++; 
 } 
 en[i]=-1; 
@@ -84,17 +66,6 @@ for(i=0;en[i]!=-1;i++)
 msg[i]=(char)en[i];
 msg[i]='\0';
 return msg;
-}
-
-
-static double do_a_giga_flop(int foo) {
-    double x = 3.14159*foo;
-    int i;
-    for (i=0; i<500000000; i++) {
-        x += 5.12313123;
-        x *= 0.5398394834;
-    }
-    return x;
 }
 
 int do_checkpoint(MFILE& mf, int nchars) {
@@ -115,36 +86,12 @@ int do_checkpoint(MFILE& mf, int nchars) {
     return 0;
 }
 
-#ifdef APP_GRAPHICS
-void update_shmem() {
-    if (!shmem) return;
-
-    // always do this; otherwise a graphics app will immediately
-    // assume we're not alive
-    shmem->update_time = dtime();
-
-    // Check whether a graphics app is running,
-    // and don't bother updating shmem if so.
-    // This doesn't matter here,
-    // but may be worth doing if updating shmem is expensive.
-    //
-    if (shmem->countdown > 0) {
-        // the graphics app sets this to 5 every time it renders a frame
-        shmem->countdown--;
-    } else {
-        return;
-    }
-    shmem->fraction_done = boinc_get_fraction_done();
-    shmem->cpu_time = boinc_worker_thread_cpu_time();;
-    boinc_get_status(&shmem->status);
-}
-#endif
 
 int main(int argc, char **argv) {
     int i,p,q,pq;
     int c, nchars = 0, retval, n;
     double fsize, fd;
-    char input_path[512], output_path[512], chkpt_path[512], buf[256],word[100];
+    char input_path[512], output_path[512], chkpt_path[512], buf[256],sentence[1025];
     MFILE out;
     FILE* state, *infile;
 
@@ -211,32 +158,20 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-#ifdef APP_GRAPHICS
-    // create shared mem segment for graphics, and arrange to update it
-    //
-    shmem = (UC_SHMEM*)boinc_graphics_make_shmem("encrypt", sizeof(UC_SHMEM));
-    if (!shmem) {
-        fprintf(stderr, "%s failed to create shared mem segment\n",
-            boinc_msg_prefix(buf, sizeof(buf))
-        );
-    }
-    update_shmem();
-    boinc_register_timer_callback(update_shmem);
-#endif
 for(i=0; ;i++){
 c = fgetc(infile);
 if(c==EOF) break;
-word[i]=c;
+sentence[i]=c;
 }
-word[i]='\0';
-p=3;
-q=11;
+sentence[i]='\0';
+p=43;
+q=3;
 pq=p*q;
-//e=7 d=3
-strcpy(word,rsaencrypt(word,7,pq));
+//e=19 d=31
+strcpy(sentence,rsaencrypt(sentence,19,pq));
 
-    for (i=0;word[i]!='\0'; i++) {
-	c=word[i];
+    for (i=0;sentence[i]!='\0'; i++) {
+	c=sentence[i];
         out._putchar(c);
         nchars++;
         if (run_slow) {
@@ -280,9 +215,6 @@ strcpy(word,rsaencrypt(word,7,pq));
     }
 
     boinc_fraction_done(1);
-#ifdef APP_GRAPHICS
-    update_shmem();
-#endif
     boinc_finish(0);
 }
 

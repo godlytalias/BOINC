@@ -1,26 +1,9 @@
-//Edited by Godly T.Alias
+//Modified by Godly T.Alias
 
 // This file is part of BOINC.
 // http://boinc.berkeley.edu
 // Copyright (C) 2008 University of California
-//
-// BOINC is free software; you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License
-// as published by the Free Software Foundation,
-// either version 3 of the License, or (at your option) any later version.
-//
-// BOINC is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-// See the GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with BOINC.  If not, see <http://www.gnu.org/licenses/>.
 
-// sample_work_generator.cpp: an example BOINC work generator.
-// This work generator has the following properties
-// (you may need to change some or all of these):
-//
 // - Runs as a daemon, and creates an unbounded supply of work.
 //   It attempts to maintain a "cushion" of 100 unsent job instances.
 //   (your app may not work this way; e.g. you might create work in batches)
@@ -71,11 +54,11 @@ const char* out_template_file = "encrypt_out";
 char* in_template;
 DB_APP app;
 int start_time;
-int seqno,wordno;
+int seqno,sen_no;
 
 // create one new job
 //
-int make_job(char word[]) {
+int make_job(char sen[]) {
     DB_WORKUNIT wu;
     char name[256], path[MAXPATHLEN];
     const char* infiles[1];
@@ -83,7 +66,7 @@ int make_job(char word[]) {
 
     // make a unique name (for the job and its input file)
     //
-    sprintf(name, "%s_%d_%d", app_name, start_time, wordno);
+    sprintf(name, "%s_%d", app_name, sen_no);
     seqno++;
     // Create the input file.
     // Put it at the right place in the download dir hierarchy
@@ -92,7 +75,7 @@ int make_job(char word[]) {
     if (retval) return retval;
     FILE* f = fopen(path, "w");
     if (!f) return ERR_FOPEN;
-    fprintf(f, "%s", word);
+    fputs(sen,f);
     fclose(f);
 
     // Fill in the job parameters
@@ -129,16 +112,16 @@ int make_job(char word[]) {
 void main_loop() {
     int retval;
 FILE *f = fopen("input.txt","r");
-char word[100];
+char sentence[1025];
     while (!feof(f)) {
         check_stop_daemons();
         int n;
 	if(!f)
-	strcpy(word,cCurrentPath);
+	strcpy(sentence,cCurrentPath);
 	else
 	{
-	fscanf(f,"%s",word);
-	wordno++;
+	fgets(sentence,1024,f);
+	sen_no++;
 	}
         retval = count_unsent_results(n, 0);
         if (retval) {
@@ -155,7 +138,7 @@ char word[100];
                 "Making %d jobs\n", njobs
             );
       //      for (int i=0; i<njobs; i++) {
-                retval = make_job(word);
+                retval = make_job(sentence);
                 if (retval) {
                     log_messages.printf(MSG_CRITICAL,
                         "can't make job: %s\n", boincerror(retval)
@@ -196,7 +179,7 @@ void usage(char *name) {
 int main(int argc, char** argv) {
     int i, retval;
     char buf[256];
-    wordno=0;
+    sen_no=0;
  if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
      {
      return 0;
