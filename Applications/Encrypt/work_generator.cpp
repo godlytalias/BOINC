@@ -116,14 +116,7 @@ char sentence[1025];
     while (!feof(f)) {
         check_stop_daemons();
         int n;
-	if(!f)
-	strcpy(sentence,cCurrentPath);
-	else
-	{
-	fgets(sentence,1024,f);
-	sen_no++;
-	}
-        retval = count_unsent_results(n, 0);
+	retval = count_unsent_results(n, 0);
         if (retval) {
             log_messages.printf(MSG_CRITICAL,
                 "count_unsent_jobs() failed: %s\n", boincerror(retval)
@@ -133,6 +126,13 @@ char sentence[1025];
         if (n > CUSHION) {
             daemon_sleep(10);
         } else {
+		if(!f)
+		strcpy(sentence,cCurrentPath);
+		else
+		{
+		fgets(sentence,1024,f);
+		sen_no++;
+		}
             int njobs = 1;// (CUSHION-n)/REPLICATION_FACTOR;
             log_messages.printf(MSG_DEBUG,
                 "Making %d jobs\n", njobs
