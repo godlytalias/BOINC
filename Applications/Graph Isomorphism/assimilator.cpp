@@ -36,7 +36,7 @@ int assimilate_handler(
     WORKUNIT& wu, vector<RESULT>& /*results*/, RESULT& canonical_result
 ) {
     int retval;
-    char res[50];
+    char res[50],buf[256];
     unsigned int i;
     retval = boinc_mkdir(config.project_path("sample_results"));
     if (retval) return retval;
