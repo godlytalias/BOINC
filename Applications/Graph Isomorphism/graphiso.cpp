@@ -18,7 +18,8 @@
 #include <csignal>
 #include <unistd.h>
 #endif
-
+#include <sys/stat.h>
+#include<sys/types.h>
 #include "str_util.h"
 #include "util.h"
 #include "filesys.h"
@@ -31,10 +32,6 @@ using std::string;
 #define INPUT_FILENAME "in"
 #define OUTPUT_FILENAME "out"
 
-bool run_slow = false;
-bool early_exit = false;
-bool early_crash = false;
-bool early_sleep = false;
 double cpu_time=20,comp_result;
 
 struct mapping
@@ -193,12 +190,8 @@ fclose(read);
 
 int main(int argc,char **argv) {
 
-#if defined(_WIN32)
-    _mkdir("../graphiso");
-#elif defined(__linux__)
-    mkdir("../graphiso", 777);
-// #else more?
-#endif
+
+    mkdir("../graphiso", 0777);
 
     int retval,iso=0;
     long pj;
@@ -251,7 +244,7 @@ char filename[60];
     }
 
 
-fscanf(infile,"%d %d",&node,&w_node);
+fscanf(infile,"%ld %ld",&node,&w_node);
 
 map_g = new mapping*[2];
 	map_g[0]=new mapping[node];
@@ -282,7 +275,7 @@ FILE *read;
 
   for(pj=0;(pj<node)&&(iso!=2);pj++)
   {
-   sprintf(filename,"../graphiso/prob_prop_%d_%d",1,pj);
+   sprintf(filename,"../graphiso/prob_prop_%d_%ld",1,pj);
    read=fopen(filename,"r");
    if(!read)
 	   prob_prop_matrix(1,g2,node,pj);
