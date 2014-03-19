@@ -40,48 +40,47 @@ long map_ver;
 };
 
 mapping **map_g;
-float **g1,**g2;
+float **g1,**g2, **tmp_sort;
 long node,w_node;
 
 //merge the partitions made by the mergesort
 void merge(int init_node,int s1,int e1,int s2,int e2,int graph_id)
 {
 FILE *read;
-long l;
-long i,j,m,temp;
-float temp_num,a,b;
+int i,j,m,temp;
+float a,b;
 char filename[40];
 sprintf(filename,"../graphiso/prob_prop_%d_%d",graph_id,init_node);
  if(s1<e2 && (e1+1)==s2)
  {
   i=s1;
   j=s2;
-  
    read = fopen(filename,"r");
   while(i<=e1 && j<=e2)
   {
-	  fseek(read,0,SEEK_SET);
-   l=0; a=b=0.0; temp_num=2.0;
-   while(a==b && l<2*(node-1))
+   m=0;
+   a=tmp_sort[m][map_g[graph_id][i].map_ver];
+   b=tmp_sort[m][map_g[graph_id][j].map_ver];
+   while(a==b && m<2*(node-1))
    {
-    m=0;
-    while(m<node)
-    {
-     fscanf(read,"%f",&temp_num);   
-    if(m==map_g[graph_id][i].map_ver)
-     a=temp_num;
-    if(m==map_g[graph_id][j].map_ver)
-     b=temp_num; 
       m++;
-    }
-      l++;                           
-   }   
+    if(m>=tmp_count)
+    {
+    tmp_sort[m]=new float[node];
+    for(int tmp_i=0;tmp_i<node;tmp_i++)
+     fscanf(read,"%f",&tmp_sort[m][tmp_i]); 
+     tmp_count++; } 
+     
+    a=tmp_sort[m][map_g[graph_id][i].map_ver]; 
+    b=tmp_sort[m][map_g[graph_id][j].map_ver];
+   }
+   
    if(a<b)
    i++;
    else if(a>=b)
     {
      temp = map_g[graph_id][j].map_ver;
-     for(long k=j;k>i;k--)
+     for(int k=j;k>i;k--)
      map_g[graph_id][k].map_ver=map_g[graph_id][k-1].map_ver;
      map_g[graph_id][i].map_ver=temp;
      j++;
@@ -114,10 +113,32 @@ for(long i=0;i<node;i++)
 return true;
 }
 
+void init_tmpsort(int graph_id,int init_node)
+{     
+ tmp_sort = new float*[2*node-1];
+ tmp_sort[0] = new float[node];
+ char filename[40];
+ sprintf(filename,"../graphiso/prob_prop_%d_%d",graph_id,init_node);
+ FILE *read = fopen(filename,"r");
+ for(int i=0;i<node;i++)
+ fscanf(read,"%f",&tmp_sort[0][i]);
+ tmp_count=1;
+ fclose(read);
+}
+
 int isotest(int p1_init_node,int p2_init_node,float **a1,float **a2)
 {
-mergesort(p1_init_node,0,node-1,0);
-mergesort(p2_init_node,0,node-1,1);
+    init_tmpsort(0,p1_init_node);
+mergesort(p1_init_node,0,node-1,0); 
+ for(int i=0;i<tmp_count;i++)
+ delete [] tmp_sort[i];
+ delete [] tmp_sort;
+
+    init_tmpsort(1,p2_init_node);
+mergesort(p2_init_node,0,node-1,1);    
+ for(int i=0;i<tmp_count;i++)
+ delete [] tmp_sort[i];
+ delete [] tmp_sort;
 //if(eq_matrix(p1_init_node,p2_init_node))
 // {
   if(adj_mat_map(a1,a2))
