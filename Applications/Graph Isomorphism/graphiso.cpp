@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <csignal>
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 #include "str_util.h"
@@ -187,7 +188,7 @@ void permute(int start,int end,FILE *file,int graph_id,bool flag)
  for(int i=0;i<=(end-start);i++)
   {
    swap(&map_g[graph_id][start],&map_g[graph_id][start+i]);
-   if((start==0 || start>0 && map_g[graph_id][start].classid!=map_g[graph_id][start-1].classid || i!=0)&& end<(node-1))
+   if((start==0 || (start>0 && map_g[graph_id][start].classid!=map_g[graph_id][start-1].classid) || i!=0)&& end<(node-1))
    {
    for(int j=end+1;j<(node-1);j++)
     if(map_g[graph_id][j].classid==map_g[graph_id][j+1].classid)
@@ -354,7 +355,7 @@ int main(int argc,char **argv) {
 #endif
 
     int retval,iso=0;
-    long pj;
+    int pj;
     double fsize, fd;
     char input_path[512], output_path[512], buf[256];
     MFILE out;
