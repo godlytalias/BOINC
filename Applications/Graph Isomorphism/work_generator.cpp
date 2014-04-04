@@ -60,7 +60,7 @@ char graphs[256];
 
 // create one new job
 //
-int make_job(long node) {
+int make_job(int node) {
     DB_WORKUNIT wu;
     char name[256], path[MAXPATHLEN];
     const char* infiles[2];
@@ -86,11 +86,11 @@ int make_job(long node) {
     wu.clear();
     wu.appid = app.id;
     strcpy(wu.name, name);
-    wu.rsc_fpops_est = 1e12;
-    wu.rsc_fpops_bound = 1e14;
-    wu.rsc_memory_bound = 1e14;
-    wu.rsc_disk_bound = 1e20;
-    wu.delay_bound = 300*n1*n1*n1*n1;
+    wu.rsc_fpops_est = 1e18;
+    wu.rsc_fpops_bound = 1e22;
+    wu.rsc_memory_bound = 1e8;
+    wu.rsc_disk_bound = 1e8;
+    wu.delay_bound = 30*n1;
     wu.min_quorum = REPLICATION_FACTOR;
     wu.target_nresults = REPLICATION_FACTOR;
     wu.max_error_results = REPLICATION_FACTOR*4;
@@ -115,7 +115,7 @@ int make_job(long node) {
 
 void main_loop() {
     int retval;
-    long node=0;
+    int node=0;
     while (node<n1) {
         check_stop_daemons();
         int n;
@@ -129,7 +129,7 @@ void main_loop() {
         if (n > CUSHION) {
             daemon_sleep(10);
         } else {
-		
+
             int njobs = 1;// (CUSHION-n)/REPLICATION_FACTOR;
             log_messages.printf(MSG_DEBUG,
                 "Making %d jobs\n", njobs
@@ -177,17 +177,16 @@ void usage(char *name) {
 
 void get_graphs()
 {
-     int mode=0,temp,retval;
+     int mode=0,temp;
      char path[MAXPATHLEN];
      char ch=' ';
      sprintf(graphs,"%s_graphs",app_name);
-    retval = config.download_path(graphs, path);
-    if (retval) return retval;
+    config.download_path(graphs, path);
      FILE *f = fopen("g1.txt","r");
      FILE *write = fopen(path,"w");
       n1=0;n2=0;
          //checking the no: of nodes in the graph 1
-		 while(ch!='\n')
+	while(ch!='\n')
          {
          ch = fgetc(f);
           if(ch>=48 && ch<=57 && mode==0)
@@ -201,13 +200,13 @@ void get_graphs()
           
           //initializing graph 1 and inputing values
          fseek(f,0,SEEK_SET);
-         for(int i=0;i<n1;i++)
+         for(int i=0;i<n1;i++){
          for(int j=0;j<n1;j++){
          fscanf(f,"%d",&temp);
          fprintf(write,"%d ",temp);         
          }
-         fprintf(write,"\n");
-         }
+         fprintf(write,"\n");}
+         
          fclose(f);
          
          ch=' ';
@@ -227,7 +226,7 @@ ch = fgetc(f);
   mode=0;
 }
          fseek(f,0,SEEK_SET);
-         for(int i=0;i<n2;i++)
+         for(int i=0;i<n2;i++){
          for(int j=0;j<n2;j++){
          fscanf(f,"%d",&temp);
          fprintf(write,"%d ",temp);
@@ -318,12 +317,4 @@ cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
     fclose(result);
     }
     //deleting memory allocated for arrays
-for(i = 0; i < n1; i++) {
-    delete [] g1[i];
-}
-delete [] g1;
-for(i = 0; i < n2; i++) {
-    delete [] g2[i];
-}
-delete [] g2;
 }
