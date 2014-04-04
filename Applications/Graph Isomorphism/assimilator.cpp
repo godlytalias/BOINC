@@ -19,6 +19,7 @@
 
 using std::vector;
 using std::string;
+char buf[512];
 const char* app_name = "graphiso";
 
 int write_error(char* p) {
