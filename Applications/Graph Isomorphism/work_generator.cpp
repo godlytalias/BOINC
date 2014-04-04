@@ -42,8 +42,7 @@
 
  char cCurrentPath[FILENAME_MAX];
 
-float **g1,**g2;
-long n1,n2;
+int n1,n2;
 
 #define CUSHION 10
     // maintain at least this many unsent results
@@ -57,18 +56,19 @@ char* in_template;
 DB_APP app;
 int start_time;
 int seqno,sen_no;
+char graphs[256];
 
 // create one new job
 //
 int make_job(long node) {
     DB_WORKUNIT wu;
     char name[256], path[MAXPATHLEN];
-    const char* infiles[1];
+    const char* infiles[2];
     int retval;
 
     // make a unique name (for the job and its input file)
     //
-    sprintf(name, "%s_%ld", app_name, node);
+    sprintf(name, "%s_%d", app_name, node);
     seqno++;
     // Create the input file.
     // Put it at the right place in the download dir hierarchy
@@ -78,18 +78,7 @@ int make_job(long node) {
     FILE* f = fopen(path, "w");
     if (!f) return ERR_FOPEN;
     //no:of vertices  node_to_work
-    fprintf(f,"%ld %ld\n",n1,node);
-    //writing 1st graph
-    for(int i=0;i<n1;i++){
-    for(int j=0;j<n1;j++)
-    fprintf(f,"%f ",g1[i][j]);
-    fprintf(f,"\n");}
-    fprintf(f,"\n");
-    //writing 2nd graph
-    for(int i=0;i<n2;i++){
-    for(int j=0;j<n2;j++)
-    fprintf(f,"%f ",g2[i][j]);
-    fprintf(f,"\n");}
+    fprintf(f,"%d %d\n",n1,node);
     fclose(f);
 
     // Fill in the job parameters
@@ -99,15 +88,16 @@ int make_job(long node) {
     strcpy(wu.name, name);
     wu.rsc_fpops_est = 1e12;
     wu.rsc_fpops_bound = 1e14;
-    wu.rsc_memory_bound = 1e8;
-    wu.rsc_disk_bound = 1e8;
-    wu.delay_bound = 86400;
+    wu.rsc_memory_bound = 1e14;
+    wu.rsc_disk_bound = 1e20;
+    wu.delay_bound = 300*n1*n1*n1*n1;
     wu.min_quorum = REPLICATION_FACTOR;
     wu.target_nresults = REPLICATION_FACTOR;
     wu.max_error_results = REPLICATION_FACTOR*4;
     wu.max_total_results = REPLICATION_FACTOR*8;
     wu.max_success_results = REPLICATION_FACTOR*4;
     infiles[0] = name;
+    infiles[1] = graphs;
 
     // Register the job with BOINC
     //
@@ -184,33 +174,17 @@ void usage(char *name) {
     );
 }
 
-//returns the degree of a vertix
-int degree(float **m,int row,int n)
-{
-int deg=0;
-for(int i=0;i<n;i++)
-deg+=(int)m[row][i];
-return deg;
-}
-
-//computing the probability distribution matrices
-void prob_dibn(float **m,int n)
-{
-int deg;
-for(int i=0;i<n;i++){
- deg = degree(m,i,n);
- for(int j=0;j<n;j++)
- {
- m[i][j]/=deg;
- }
-}
-}
 
 void get_graphs()
 {
-     int mode=0;
+     int mode=0,temp,retval;
+     char path[MAXPATHLEN];
      char ch=' ';
+     sprintf(graphs,"%s_graphs",app_name);
+    retval = config.download_path(graphs, path);
+    if (retval) return retval;
      FILE *f = fopen("g1.txt","r");
+     FILE *write = fopen(path,"w");
       n1=0;n2=0;
          //checking the no: of nodes in the graph 1
 		 while(ch!='\n')
@@ -226,14 +200,14 @@ void get_graphs()
           }
           
           //initializing graph 1 and inputing values
-         g1 = new float*[n1];
-         for(int i=0;i<n1;i++)
-         g1[i]=new float[n1];
          fseek(f,0,SEEK_SET);
          for(int i=0;i<n1;i++)
-         for(int j=0;j<n1;j++)
-         fscanf(f,"%f",&g1[i][j]);
-         
+         for(int j=0;j<n1;j++){
+         fscanf(f,"%d",&temp);
+         fprintf(write,"%d ",temp);         
+         }
+         fprintf(write,"\n");
+         }
          fclose(f);
          
          ch=' ';
@@ -252,19 +226,15 @@ ch = fgetc(f);
  else if(ch==' ')
   mode=0;
 }
-         g2 = new float*[n2];
-         for(int i=0;i<n2;i++)
-         g2[i]=new float[n2];
          fseek(f,0,SEEK_SET);
          for(int i=0;i<n2;i++)
-         for(int j=0;j<n2;j++)
-         fscanf(f,"%f",&g2[i][j]);
-         
+         for(int j=0;j<n2;j++){
+         fscanf(f,"%d",&temp);
+         fprintf(write,"%d ",temp);
+         }
+         fprintf(write,"\n");}
          fclose(f); 
-         
-         //computing probability distribution matrices of both graphs
-prob_dibn(g1,n1); //g1 is converted to the probability distribution matrix of graph 1
-prob_dibn(g2,n2); //g2 is converted to the probability distribution matrix of graph 2          
+         fclose(write);
      }
 
 int main(int argc, char** argv) {
