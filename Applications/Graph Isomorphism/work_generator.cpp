@@ -86,7 +86,7 @@ int make_job(int node) {
     wu.clear();
     wu.appid = app.id;
     strcpy(wu.name, name);
-    wu.rsc_fpops_est = n1*1e14;
+    wu.rsc_fpops_est = n1*1e10;
     wu.rsc_fpops_bound = 1e24;
     wu.rsc_memory_bound = 1e8;
     wu.rsc_disk_bound = 1e8;
