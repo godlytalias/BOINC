@@ -5,6 +5,7 @@
 	<file_info>
 		<number>1</number>
 		<sticky/>
+		<no_delete/>
 		<report_on_rpc/>
 	</file_info>
     <workunit>
