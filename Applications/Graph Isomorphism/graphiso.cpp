@@ -357,7 +357,7 @@ int main(int argc,char **argv) {
 
     int retval,iso=0;
     int pj;
-    double fsize, fd;
+    double fd;
     char input_path[512], output_path[512], buf[256];
     MFILE out;
     FILE *infile;
