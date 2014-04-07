@@ -108,7 +108,7 @@ int make_job(int node) {
         path,
         config.project_path(path),
         infiles,
-        1,
+        2,
         config
     );
 }
