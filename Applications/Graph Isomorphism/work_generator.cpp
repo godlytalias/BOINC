@@ -54,7 +54,6 @@ const char* out_template_file = "graphiso_out";
 
 char* in_template;
 DB_APP app;
-int start_time;
 char graphs[256];
 
 // create one new job
@@ -248,7 +247,6 @@ ch = fgetc(f);
 int main(int argc, char** argv) {
     int i, retval;
     char buf[256];
-    sen_no=0;
  if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
      {
      return 0;
@@ -313,15 +311,12 @@ cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
     }
 
     start_time = time(0);
-    seqno = 0;
 
     log_messages.printf(MSG_NORMAL, "Starting\n");
 
     get_graphs();
-    if(n1==n2){
-    start_time = time(0);
-    main_loop();
-    }
+    if(n1==n2)
+       main_loop();
     else{
     FILE *result = fopen("result.txt","w");
     fprintf(result,"NOT ISOMORPHIC");
