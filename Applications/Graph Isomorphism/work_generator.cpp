@@ -42,9 +42,9 @@
 
  char cCurrentPath[FILENAME_MAX];
 
-int n1,n2;
+int n1,n2,start_time=0;
 
-#define CUSHION 10
+#define CUSHION 100
     // maintain at least this many unsent results
 #define REPLICATION_FACTOR  1
 
@@ -55,7 +55,6 @@ const char* out_template_file = "graphiso_out";
 char* in_template;
 DB_APP app;
 int start_time;
-int seqno,sen_no;
 char graphs[256];
 
 // create one new job
@@ -68,8 +67,7 @@ int make_job(int node) {
 
     // make a unique name (for the job and its input file)
     //
-    sprintf(name, "%s_%d", app_name, node);
-    seqno++;
+    sprintf(name, "%s_%d_%d", app_name,start_time, node);
     // Create the input file.
     // Put it at the right place in the download dir hierarchy
     //
@@ -115,10 +113,9 @@ int make_job(int node) {
 
 void main_loop() {
     int retval;
-    int node=0;
+    int node=0,n;
     while (node<n1) {
         check_stop_daemons();
-        int n;
 	retval = count_unsent_results(n, 0);
         if (retval) {
             log_messages.printf(MSG_CRITICAL,
@@ -130,9 +127,9 @@ void main_loop() {
             daemon_sleep(10);
         } else {
 
-            int njobs = 1;// (CUSHION-n)/REPLICATION_FACTOR;
+          //  int njobs =  (CUSHION-n)/REPLICATION_FACTOR;
             log_messages.printf(MSG_DEBUG,
-                "Making %d jobs\n", njobs
+                "Making job for %d\n", node
             );
       //      for (int i=0; i<njobs; i++) {
                 retval = make_job(node);
@@ -146,7 +143,19 @@ void main_loop() {
             // Now sleep for a few seconds to let the transitioner
             // create instances for the jobs we just created.
             // Otherwise we could end up creating an excess of jobs.
-            daemon_sleep(5);
+            double now = dtime();
+            while (1) {
+                daemon_sleep(5);
+                double x;
+                retval = min_transition_time(x);
+                if (retval) {
+                    log_messages.printf(MSG_CRITICAL,
+                        "min_transition_time failed: %s\n", boincerror(retval)
+                    );
+                    exit(retval);
+                }
+                if (x > now) break;
+            }
         }
         node++;
     }
@@ -309,8 +318,10 @@ cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
     log_messages.printf(MSG_NORMAL, "Starting\n");
 
     get_graphs();
-    if(n1==n2)
+    if(n1==n2){
+    start_time = time(0);
     main_loop();
+    }
     else{
     FILE *result = fopen("result.txt","w");
     fprintf(result,"NOT ISOMORPHIC");
