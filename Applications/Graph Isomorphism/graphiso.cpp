@@ -227,7 +227,7 @@ for(int i=0;flag && i<((2*n)-1);i++)
 {
         j=1;
         //this loop gives different class id to vertices with same class id but different state
-       while(j<n)
+        while(j<n)
         {
         if(map_g[graph_id][j].classid==map_g[graph_id][j-1].classid)
         {
