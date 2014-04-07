@@ -30,6 +30,7 @@
 using std::string;
 
 #define INPUT_FILENAME "in"
+#define INPUT_GRAPH "graph"
 #define OUTPUT_FILENAME "out"
 
 bool run_slow = false;
@@ -383,10 +384,10 @@ char filename[60];
         );
         exit(-1);
     }
-
-    // get size of input file (used to compute fraction done)
-    //
-    file_size(input_path, fsize);
+    
+    
+    fscanf(infile,"%d %d",&node,&w_node);
+    fclose(infile);
 
     boinc_resolve_filename(OUTPUT_FILENAME, output_path, sizeof(output_path));
 
@@ -405,11 +406,22 @@ char filename[60];
     }
 
 
-fscanf(infile,"%d %d",&node,&w_node);
 
 map_g = new mapping*[2];
 for(int i=0;i<2;i++)
 map_g[i]=new mapping[node];
+
+ // open the input file for graphs(resolve logical name first)
+    //
+    boinc_resolve_filename(INPUT_GRAPH, input_path, sizeof(input_path));
+    infile = boinc_fopen(input_path, "r");
+    if (!infile) {
+        fprintf(stderr,
+            "%s Couldn't find input file for graph, resolved name %s.\n",
+            boinc_msg_prefix(buf, sizeof(buf)), input_path
+        );
+        exit(-1);
+    }
 
 get_graphs(infile);
 
