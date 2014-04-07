@@ -18,6 +18,5 @@
 			<open_name>graph</open_name>
 			<copy_file/>
 		</file_ref>
-        <command_line>-cpu_time 30</command_line>
     </workunit>
 </input_template>
