@@ -40,6 +40,7 @@ bool early_sleep = false;
 double cpu_time=20,comp_result;
 
 const int MAX_PERMUTATIONS=1000;
+const int CLIENT_LIMIT = 999;
 
 int perm;
 struct mapping
@@ -355,7 +356,7 @@ int main(int argc,char **argv) {
 // #else more?
 #endif
 
-    int retval,iso=0;
+    int retval,iso=0,limit;
     int pj;
     double fd;
     char input_path[512], output_path[512], buf[256];
@@ -442,7 +443,9 @@ FILE *read;
   else
 	  fclose(read);
 
-  for(pj=sub_node;(pj<node)&&(iso!=2);pj++)
+limit = CLIENT_LIMIT + sub_node;
+
+  for(pj=sub_node;(pj<limit)&&(pj<node)&&(iso!=2);pj++)
   {
    sprintf(filename,"../graphiso/map_%d_%d",1,pj);
    read=fopen(filename,"r");
