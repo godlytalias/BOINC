@@ -66,7 +66,7 @@ int make_job(int node,int sub_node) {
 
     // make a unique name (for the job and its input file)
     //
-    sprintf(name, "%s_%d_%d", app_name,start_time, node);
+    sprintf(name, "%s_%d_%d_%d", app_name,start_time, node,sub_node);
     // Create the input file.
     // Put it at the right place in the download dir hierarchy
     //
