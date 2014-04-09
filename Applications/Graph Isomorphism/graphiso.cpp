@@ -50,7 +50,7 @@ int classid; };
 
 mapping **map_g;
 float **g1,**g2;
-int node,w_node;
+int node,w_node,sub_node;
 int tmp_count;
 
 
@@ -351,7 +351,7 @@ int main(int argc,char **argv) {
 #if defined(_WIN32)
     _mkdir("../graphiso");
 #elif defined(__linux__)
-    mkdir("../graphiso", 777);
+    mkdir("../graphiso", 0777);
 // #else more?
 #endif
 
@@ -386,7 +386,7 @@ char filename[60];
     }
     
     
-    fscanf(infile,"%d %d",&node,&w_node);
+    fscanf(infile,"%d %d %d",&node,&w_node,&sub_node);
     fclose(infile);
 
     boinc_resolve_filename(OUTPUT_FILENAME, output_path, sizeof(output_path));
@@ -442,7 +442,7 @@ FILE *read;
   else
 	  fclose(read);
 
-  for(pj=0;(pj<node)&&(iso!=2);pj++)
+  for(pj=sub_node;(pj<node)&&(iso!=2);pj++)
   {
    sprintf(filename,"../graphiso/map_%d_%d",1,pj);
    read=fopen(filename,"r");
