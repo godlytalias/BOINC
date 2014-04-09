@@ -47,6 +47,7 @@ int n1,n2,start_time=0;
 #define CUSHION 100
     // maintain at least this many unsent results
 #define REPLICATION_FACTOR  1
+#define CLIENT_LIMIT 999
 
 const char* app_name = "graphiso";
 const char* in_template_file = "graphiso_in";
@@ -131,7 +132,7 @@ void main_loop() {
                 "Making job for %d\n", node
             );
       //      for (int i=0; i<njobs; i++) {
-      	      for (int i=0; i<n1; i+=999)
+      	      for (int i=0; i<n1; i+=CLIENT_LIMIT)
       	      {
                 retval = make_job(node,i);
                 if (retval) {
