@@ -58,7 +58,7 @@ char graphs[256];
 
 // create one new job
 //
-int make_job(int node) {
+int make_job(int node,int sub_node) {
     DB_WORKUNIT wu;
     char name[256], path[MAXPATHLEN];
     const char* infiles[2];
@@ -75,7 +75,7 @@ int make_job(int node) {
     FILE* f = fopen(path, "w");
     if (!f) return ERR_FOPEN;
     //no:of vertices  node_to_work
-    fprintf(f,"%d %d\n",n1,node);
+    fprintf(f,"%d %d %d\n",n1,node,sub_node);
     fclose(f);
 
     // Fill in the job parameters
@@ -131,13 +131,16 @@ void main_loop() {
                 "Making job for %d\n", node
             );
       //      for (int i=0; i<njobs; i++) {
-                retval = make_job(node);
+      	      for (int i=0; i<n1; i+=999)
+      	      {
+                retval = make_job(node,i);
                 if (retval) {
                     log_messages.printf(MSG_CRITICAL,
                         "can't make job: %s\n", boincerror(retval)
                     );
                     exit(retval);
                 }
+      	      }
    //         }
             // Now sleep for a few seconds to let the transitioner
             // create instances for the jobs we just created.
