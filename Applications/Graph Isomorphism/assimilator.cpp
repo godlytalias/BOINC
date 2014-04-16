@@ -52,10 +52,11 @@ int assimilate_handler(
             OUTPUT_FILE_INFO& fi = output_files[i];
             if (n==1) {
 	FILE *read = fopen(fi.path.c_str(),"r");
-	FILE *write = fopen("result.txt","a");
+	FILE *write;
 	fscanf(read,"%s",res);
 	if(strncmp(res,"ISOMORPHIC",10)==0)
 	{
+	write = fopen("result.txt","a");
         while(!feof(read))
         {
          fscanf(read,"%s",res);
