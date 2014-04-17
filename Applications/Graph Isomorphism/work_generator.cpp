@@ -6,7 +6,7 @@
 // either version 3 of the License, or (at your option) any later version.
 
 // - Runs as a daemon, and creates an unbounded supply of work.
-//   It attempts to maintain a "cushion" of 100 unsent job instances.
+//   It attempts to maintain a "cushion" of 500 unsent job instances.
 //   (your app may not work this way; e.g. you might create work in batches)
 // - Creates work for the application "encrypt".
 // - Creates a new input file for each job;
@@ -44,7 +44,7 @@
 
 int n1,n2,start_time=0;
 
-#define CUSHION 100
+#define CUSHION 500
     // maintain at least this many unsent results
 #define REPLICATION_FACTOR  1
 #define CLIENT_LIMIT 500
@@ -124,7 +124,7 @@ void main_loop() {
             exit(retval);
         }
         if (n > CUSHION) {
-            daemon_sleep(10);
+            daemon_sleep(5);
         } else {
 
           //  int njobs =  (CUSHION-n)/REPLICATION_FACTOR;
