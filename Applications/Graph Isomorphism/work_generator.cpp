@@ -47,7 +47,7 @@ int n1,n2,start_time=0;
 #define CUSHION 100
     // maintain at least this many unsent results
 #define REPLICATION_FACTOR  1
-#define CLIENT_LIMIT 999
+#define CLIENT_LIMIT 500
 
 const char* app_name = "graphiso";
 const char* in_template_file = "graphiso_in";
