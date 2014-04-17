@@ -40,7 +40,7 @@ bool early_sleep = false;
 double cpu_time=20,comp_result;
 
 const int MAX_PERMUTATIONS=1000;
-const int CLIENT_LIMIT = 999;
+const int CLIENT_LIMIT = 500;
 
 int perm;
 struct mapping
@@ -362,7 +362,6 @@ int main(int argc,char **argv) {
     char input_path[512], output_path[512], buf[256];
     MFILE out;
     FILE *infile;
-char *result;
 char filename[60];
 
    
@@ -469,25 +468,27 @@ limit = CLIENT_LIMIT + sub_node;
     
 if(iso==2)
 {
-result=new char[node*10];
-strcpy(result,"ISOMORPHIC\n");
-for(long i=0;i<node;i++){
+sprintf(buf,"ISOMORPHIC\n");
+    for (int i=0;buf[i]!='\0'; i++) {
+        out._putchar(buf[i]);
+    }
+for(int i=0;i<node;i++){
 sprintf(buf,"%d->%d\n",map_g[0][i].map_ver,map_g[1][i].map_ver);
-strcat(result,buf);
+for (int i=0;buf[i]!='\0'; i++) {
+        out._putchar(buf[i]);
+    }
 }
 }
 else
 {
-result=new char[20];
-strcpy(result,"NOT ISOMORPHIC\n");   
+sprintf(buf,"NOT ISOMORPHIC\n"); 
+for (int i=0;buf[i]!='\0'; i++) {
+        out._putchar(buf[i]);
+    }  
 }
 
 
 
-    for (long i=0;result[i]!='\0'; i++) {
-        out._putchar(result[i]);
-    }
-	delete [] result;
     retval = out.flush();
     if (retval) {
         fprintf(stderr, "%s APP: graphiso flush failed %d\n",
